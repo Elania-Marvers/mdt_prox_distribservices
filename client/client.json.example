@@ -1,0 +1,5 @@
+{
+  "server_url": "http://10.0.0.3:8080",
+  "penalty_seconds": 90,
+  "ascii_only": false
+}

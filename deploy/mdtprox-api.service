@@ -1,0 +1,74 @@
+# =============================================================================
+#  Service systemd de l'API de déploiement (FastAPI lancée par uvicorn).
+#
+#  Installé par scripts/setup-vm.sh dans /etc/systemd/system/mdtprox-api.service
+#
+#  Commandes utiles (dans la VM) :
+#    systemctl status mdtprox-api          état du service
+#    journalctl -u mdtprox-api -f          journal en direct
+#    systemctl restart mdtprox-api         redémarrer (après avoir modifié /etc/mdtprox.env)
+#
+#  Les secrets sont dans /etc/mdtprox.env (droits 0600, propriétaire root) :
+#  systemd (qui tourne en root) le lit, le service lui-même n'a pas besoin de
+#  pouvoir le lire.
+# =============================================================================
+
+[Unit]
+Description=MDTPROX MDT - API de deploiement Windows par le reseau
+Documentation=file:///opt/mdtprox/CDC.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mdt
+Group=mdt
+WorkingDirectory=/opt/mdtprox/server
+
+# Valeurs par défaut si elles manquent dans le fichier ci-dessous
+# (le fichier, lu ensuite, l'emporte sur ces deux lignes).
+Environment=BIND_HOST=0.0.0.0
+Environment=BIND_PORT=8080
+EnvironmentFile=/etc/mdtprox.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+
+# Refus de démarrer tant que le fichier contient encore un emplacement « CHANGEZ-MOI »
+# (le « + » exécute ce contrôle en root : le service, lui, ne peut pas lire le fichier).
+ExecStartPre=+/bin/sh -c '! grep -q CHANGEZ-MOI /etc/mdtprox.env'
+
+# UN SEUL processus (pas d'option --workers) : le blocage « trop d'essais de code »
+# est gardé en mémoire, plusieurs processus se le partageraient mal.
+ExecStart=/opt/mdtprox/.venv/bin/uvicorn --factory app.main:create_app --host ${BIND_HOST} --port ${BIND_PORT}
+
+Restart=on-failure
+RestartSec=3
+
+# --- Durcissement : le service ne peut presque rien faire d'autre que son travail ---
+NoNewPrivileges=yes
+# Le disque est en lecture seule pour le service, sauf /srv/deploy (journal, empreintes des images).
+ProtectSystem=strict
+ReadWritePaths=/srv/deploy
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+# Port 8080 > 1024 : aucune capacité spéciale nécessaire.
+CapabilityBoundingSet=
+AmbientCapabilities=
+# Fichiers créés par le service : lisibles par lui et son groupe seulement.
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

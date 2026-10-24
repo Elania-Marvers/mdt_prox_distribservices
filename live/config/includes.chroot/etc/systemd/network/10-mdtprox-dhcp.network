@@ -1,0 +1,6 @@
+# Toute carte réseau filaire demande son adresse au DHCP de l'établissement.
+[Match]
+Name=en* eth*
+
+[Network]
+DHCP=ipv4

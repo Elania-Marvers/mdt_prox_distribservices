@@ -1,0 +1,15 @@
+{
+  "environment": "winpe",
+  "manufacturer": null,
+  "model": null,
+  "serial": null,
+  "bios_date": null,
+  "firmware": "unknown",
+  "cpu_name": null,
+  "cpu_cores": null,
+  "ram_mb": null,
+  "disks": [],
+  "tpm": "unknown",
+  "secure_boot": null,
+  "mac": null
+}

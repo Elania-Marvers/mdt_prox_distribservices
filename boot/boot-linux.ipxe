@@ -1,0 +1,68 @@
+#!ipxe
+# =============================================================================
+#  boot-linux.ipxe : GABARIT du script de démarrage réseau pour le mini-système LINUX
+#  (celui qui restaure les images Clonezilla ; voir CDC).
+#
+#  - Installé par scripts/setup-vm.sh dans /srv/deploy/boot.ipxe (si MINI_OS=linux, le défaut).
+#  - Servi par l'API sur GET /boot.ipxe ; l'API remplace « @@BASE_URL@@ » par PUBLIC_BASE_URL
+#    (ex. http://10.0.0.3:8080). Le MÊME mini-système sert donc à la paillasse et à la production :
+#    l'adresse du serveur n'est pas écrite dans l'image mais passée au noyau (mdtprox_server=).
+#  - Exécuté par iPXE sur le PC, après ipxe.efi / undionly.kpxe (voir scripts/dhcp-pxe.ps1).
+#
+#  Fichiers attendus dans /srv/deploy/live/ (fabriqués par scripts/build-live.sh) :
+#    vmlinuz                 le noyau Linux
+#    initrd.img              le système de démarrage initial (contient curl pour télécharger la suite)
+#    filesystem.squashfs     le système complet (~300 Mo), chargé EN MÉMOIRE par le paramètre fetch=
+#
+#  Paramètres du noyau :
+#    boot=live components    démarrage « live » (live-boot)
+#    fetch=URL               télécharge le système de fichiers par HTTP
+#    ip=dhcp                 demande une adresse IP dès l'initrd (nécessaire pour fetch=)
+#    noautologin             aucune ouverture de session automatique
+#    keyboard-layouts=fr     clavier AZERTY  /  timezone=Europe/Paris
+#    mdtprox_server=URL       adresse de l'API, lue par /opt/mdtprox/start.sh
+#    mdtprox_debug            (à AJOUTER à la main dans l'invite iPXE) shell root au lieu du client
+#  Pour voir les messages de démarrage : retirer « quiet loglevel=3 » ci-dessous.
+#
+#  Messages en ASCII (sans accents) : la console d'iPXE ne sait pas afficher l'UTF-8.
+#  À VÉRIFIER SUR BANC : démarrage du noyau Linux par iPXE en UEFI (ipxe.efi) et en BIOS (undionly.kpxe).
+# =============================================================================
+
+echo
+echo ============================================================
+echo  Deploiement automatique des postes par le reseau (POC)
+echo  Serveur : @@BASE_URL@@
+echo  Ce PC   : ${ip}   MAC ${mac}   mode ${platform}
+echo ============================================================
+echo
+
+set base @@BASE_URL@@/live
+
+echo [1/3] Chargement du noyau Linux...
+kernel ${base}/vmlinuz initrd=initrd.img boot=live components fetch=${base}/filesystem.squashfs ip=dhcp noautologin keyboard-layouts=fr timezone=Europe/Paris mdtprox_server=@@BASE_URL@@ quiet loglevel=3 || goto echec
+
+echo [2/3] Chargement du systeme de demarrage...
+initrd --name initrd.img ${base}/initrd.img || goto echec
+
+echo [3/3] Demarrage (le systeme complet, environ 300 Mo, se telecharge ensuite : patientez)...
+boot || goto echec
+
+# Si « boot » réussit, on ne revient jamais ici.
+exit
+
+# -----------------------------------------------------------------------------
+#  Échec : message clair, 15 s pour le lire, puis invite iPXE (pas de redémarrage en boucle).
+#    - « exit »   : le PC continue sur son démarrage normal (disque) ;
+#    - « reboot » : nouvel essai.
+# -----------------------------------------------------------------------------
+:echec
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo  ECHEC du demarrage par le reseau
+echo  Verifier : le serveur est allume et repond sur @@BASE_URL@@
+echo             le mini-systeme existe (scripts/build-live.sh a ete lance)
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo  Invite iPXE dans 15 secondes.   exit = demarrer sur le disque
+echo                                  reboot = nouvel essai
+sleep 15
+shell

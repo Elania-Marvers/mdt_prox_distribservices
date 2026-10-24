@@ -1,0 +1,29 @@
+#!/bin/sh
+# live-build lit ce fichier quand on lance `lb config` : il fixe les réglages de l'image.
+# Lancé par scripts/build-live.sh (variables facultatives : LB_MIRROR, LB_DIST).
+#
+# Image : Debian « live » minimale (pas de bureau). Elle démarre par le réseau (iPXE), se charge
+# EN MÉMOIRE (paramètre noyau fetch=), lance le client de déploiement sur la console 1, et disparaît
+# à l'extinction. Rien n'est installé sur le disque du PC en dehors de l'image restaurée.
+set -e
+
+MIRROR="${LB_MIRROR:-http://deb.debian.org/debian/}"
+
+# non-free-firmware : micrologiciels des cartes réseau (Realtek, Broadcom) que le noyau libre ne contient pas.
+# --binary-images netboot : on ne veut ni ISO ni chargeur de démarrage, seulement noyau + initrd + squashfs.
+# À VÉRIFIER SUR BANC : version de live-build de la VM et sorties exactes (build-live.sh cherche les fichiers).
+lb config noauto \
+    --distribution "${LB_DIST:-bookworm}" \
+    --architectures amd64 \
+    --archive-areas "main non-free-firmware" \
+    --mirror-bootstrap "$MIRROR" \
+    --mirror-chroot "$MIRROR" \
+    --mirror-binary "$MIRROR" \
+    --binary-images netboot \
+    --apt-recommends false \
+    --apt-indices false \
+    --firmware-chroot false \
+    --firmware-binary false \
+    --debian-installer none \
+    --memtest none \
+    "${@}"

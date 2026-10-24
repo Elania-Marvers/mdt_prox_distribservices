@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Éditeur et outils locaux
+.vscode/
+.idea/
+.DS_Store
+
+# Secrets et gros fichiers : JAMAIS dans Git (voir CDC.md)
+.env
+/etc/mdtprox.env
+profiles.yaml
+audit.jsonl
+*.wim
+*.esd
+*.iso
+*.sha256
+python-*-embed-*.zip
+wimboot

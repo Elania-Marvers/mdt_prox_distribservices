@@ -1,0 +1,15 @@
+{
+  "environment": "winpe",
+  "manufacturer": "LENOVO",
+  "model": "ThinkCentre M58p",
+  "serial": "MJ00AAAA",
+  "bios_date": "2010-02-15",
+  "firmware": "bios",
+  "cpu_name": "Intel(R) Core(TM)2 Duo CPU     E8400  @ 3.00GHz",
+  "cpu_cores": 2,
+  "ram_mb": 2048,
+  "disks": [{"name": "0", "size_gb": 160, "kind": "hdd"}],
+  "tpm": "none",
+  "secure_boot": null,
+  "mac": "AA:BB:CC:00:00:02"
+}

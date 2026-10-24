@@ -1,0 +1,4 @@
+# fastapi >= 0.116 : nécessaire pour que le téléchargement gère l'en-tête Range (Starlette >= 0.39).
+fastapi>=0.116
+uvicorn>=0.30
+pyyaml>=6.0

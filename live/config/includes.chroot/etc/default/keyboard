@@ -1,0 +1,6 @@
+# Clavier AZERTY : le code de salle se tape dessus.
+XKBMODEL="pc105"
+XKBLAYOUT="fr"
+XKBVARIANT=""
+XKBOPTIONS=""
+BACKSPACE="guess"

@@ -1,0 +1,19 @@
+#!/bin/sh
+# Exécuté DANS le système en construction (chroot) par live-build.
+set -e
+
+# Réseau DHCP + client de déploiement au démarrage.
+systemctl enable systemd-networkd.service
+systemctl enable mdtprox-client.service
+
+# Aucune invite de connexion : le seul écran est celui du client (le dépannage passe par le paramètre
+# noyau mdtprox_debug, voir /opt/mdtprox/start.sh). Un élève devant le PC ne peut pas ouvrir de console.
+for n in 1 2 3 4 5 6; do
+    systemctl mask "getty@tty$n.service"
+done
+systemctl mask autovt@.service
+
+chmod 0755 /opt/mdtprox/start.sh
+
+# Image plus petite : documentation et pages de manuel ne servent à rien ici.
+rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/info/* /var/cache/apt/archives/*.deb

@@ -1,0 +1,15 @@
+{
+  "environment": "winpe",
+  "manufacturer": "HP",
+  "model": "HP Exemple 800 G4 SFF",
+  "serial": "CZC0000003",
+  "bios_date": "2018-03-12",
+  "firmware": "uefi",
+  "cpu_name": "Intel(R) Core(TM) i3-8100 CPU @ 3.60GHz",
+  "cpu_cores": 4,
+  "ram_mb": 4096,
+  "disks": [{"name": "0", "size_gb": 500, "kind": "hdd"}],
+  "tpm": "2.0",
+  "secure_boot": true,
+  "mac": "AA:BB:CC:00:00:03"
+}

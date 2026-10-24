@@ -1,0 +1,15 @@
+{
+  "environment": "winpe",
+  "manufacturer": "Dell Inc.",
+  "model": "OptiPlex 3000",
+  "serial": "DLL0000004",
+  "bios_date": "2023-03-01",
+  "firmware": "uefi",
+  "cpu_name": "12th Gen Intel(R) Core(TM) i5-12400",
+  "cpu_cores": 6,
+  "ram_mb": 16384,
+  "disks": [{"name": "0", "size_gb": 512, "kind": "ssd"}],
+  "tpm": "2.0",
+  "secure_boot": true,
+  "mac": "AA:BB:CC:00:00:04"
+}

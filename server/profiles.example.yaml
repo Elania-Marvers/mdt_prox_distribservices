@@ -1,0 +1,59 @@
+# EXEMPLE de profiles.yaml (à copier dans DATA_DIR, ex. /srv/deploy/profiles.yaml, puis à adapter).
+# Les codes ci-dessous sont FICTIFS : ils sont écrits en commentaire, à côté de chaque salle.
+# Pour fabriquer l'empreinte d'un vrai code :  python3 server/tools/hash_code.py
+# Le serveur relit ce fichier tout seul quand il change (pas besoin de le redémarrer).
+
+images:
+  win11-physique:                       # identifiant libre : lettres, chiffres, point, tiret, underscore
+    label: "Windows 11 Pro Éducation – salle de physique"
+    file: win11-physique.wim            # dans DATA_DIR/images/
+    wim_index: 1
+    os_family: windows11                # windows10 | windows11
+  win10-polyvalent:
+    label: "Windows 10 Pro – usage général"
+    file: win10-polyvalent.wim
+    wim_index: 1
+    os_family: windows10
+  # --- Image Clonezilla (faites avec `ocs-sr savedisk`) ---------------------------
+  # `dir` = nom du dossier dans DATA_DIR/images/. Le modèle de PC d'origine et la taille du disque
+  # d'origine sont lus tout seuls dans le dossier (Info-dmi.txt, *.sgdisk) : le serveur prévient si le PC
+  # n'est pas le bon modèle ou si son disque est trop petit. `source_model: "…"` (facultatif) force le modèle.
+  # Pour lister toutes tes images et obtenir ces lignes : python3 server/tools/scan_images.py /srv/deploy/images
+  win10-rooma-clonezilla:
+    label: "Windows 10 22H2 – salle ROOMA (HP Exemple 600 G3 MT)"
+    kind: clonezilla
+    dir: W10-22H2-ROOMA
+    os_family: windows10
+
+rooms:
+  - id: ROOMA
+    label: "Salle ROOMA"
+    # code d'exemple : exemple-rooma
+    code_hash: "scrypt$16384$8$1$c1ejDab9OnwVR30oS0qmmg==$KzeGV0MdLd1l5EALaG8sUfxm7T/qS7ImG34TTZdtfjQ="
+    image: win11-physique
+    name_prefix: "ROOMA-"               # préfixe SUGGÉRÉ pour le nom du PC
+    ou: "OU=ROOMA,OU=Ordinateurs,DC=example,DC=local"   # optionnel : OU Active Directory de destination
+
+  - id: ROOMB
+    label: "Salle ROOMB"
+    # code d'exemple : exemple-roomb
+    code_hash: "scrypt$16384$8$1$D0jxLX//qDW++2vdgtQgLA==$T1l/mUvCUecCYab3SWSaXELYPVr3UWgKik/6LxwHYHg="
+    image: win11-physique
+    name_prefix: "ROOMB-"
+    ou: "OU=ROOMB,OU=Ordinateurs,DC=example,DC=local"
+
+  - id: ROOMC
+    label: "Salle ROOMC (anciens postes)"
+    # code d'exemple : exemple-roomc
+    code_hash: "scrypt$16384$8$1$RtWTganoDYxgyOaQZ5/IMA==$/Ex0+fEBe+55NzIBv0QfN0ABp/zkg+EWyEvlhAsudUA="
+    image: win10-polyvalent
+    name_prefix: "ROOMC-"
+    # pas d'« ou » ici : le PC sera créé dans le conteneur « Computers » par défaut de l'AD
+
+  - id: ROOMAC
+    label: "Salle ROOMA (image Clonezilla)"
+    # code d'exemple : exemple-roomac
+    code_hash: "scrypt$16384$8$1$miaZAQOu2wj/Ti0XfzLOmQ==$WfZh0S/UJ1XOqy89+NMoyhg7XIFnfZ33QJ+TnyM6KGY="
+    image: win10-rooma-clonezilla
+    name_prefix: "ROOMA-"
+    ou: "OU=ROOMA,OU=Ordinateurs,DC=example,DC=local"

@@ -1,0 +1,79 @@
+#!ipxe
+# =============================================================================
+#  boot.ipxe : GABARIT du script de démarrage réseau (iPXE)
+#
+#  - Copié par scripts/setup-vm.sh dans /srv/deploy/boot.ipxe.
+#  - Servi par l'API sur  GET /boot.ipxe  ; l'API remplace "@@BASE_URL@@" par la
+#    variable PUBLIC_BASE_URL de /etc/mdtprox.env (ex. http://10.0.0.3:8080).
+#  - Exécuté par iPXE sur le PC, APRÈS le chargement de ipxe.efi / undionly.kpxe
+#    (voir le DHCP : option 67 = cette URL pour les clients « iPXE »).
+#
+#  Ce qu'il fait : télécharge en HTTP wimboot + le mini-Windows (WinPE), puis
+#  démarre WinPE. Le MÊME script sert au BIOS classique ET à l'UEFI.
+#
+#  Fichiers attendus dans /srv/deploy/winpe/ (fabriqués par scripts/build-winpe.sh
+#  et scripts/setup-vm.sh) :
+#    wimboot    le chargeur (un seul binaire « hybride » BIOS + UEFI 64 bits)
+#    bootmgr    gestionnaire de démarrage BIOS (ignoré en UEFI, sans danger)
+#    BCD        configuration de démarrage (wimboot l'adapte tout seul à l'UEFI)
+#    boot.sdi   disque virtuel de démarrage
+#    boot.wim   le mini-Windows (WinPE) + Python + notre client
+#
+#  Notes techniques (doc officielle : https://ipxe.org/wimboot) :
+#   - « initrd <URL> <nom> » : le 2e mot est le NOM sous lequel wimboot voit le fichier.
+#   - En UEFI, wimboot va chercher lui-même le gestionnaire de démarrage UEFI
+#     (bootmgfw.efi) et le BCD UEFI DANS boot.wim ; un fichier déjà fourni
+#     explicitement (ici BCD, boot.sdi) l'emporte sur celui du WIM.
+#   - SI l'UEFI refuse de démarrer avec ces fichiers explicites, essayer de ne
+#     laisser que « kernel » et « initrd boot.wim » (variante la plus simple de la
+#     doc) : wimboot prendra tout le reste dans boot.wim.   # À VÉRIFIER SUR BANC
+#   - Pour dépanner : ajouter « imgstat » puis « prompt » avant « boot », ou
+#     « pause » sur la ligne « kernel » (wimboot attend une touche).
+#
+#  Les messages ci-dessous sont en ASCII (sans accents) : la console d'iPXE ne
+#  sait pas afficher l'UTF-8.
+# =============================================================================
+
+echo
+echo ============================================================
+echo  Deploiement Windows des postes par le reseau (POC)
+echo  Serveur : @@BASE_URL@@
+echo  Ce PC   : ${ip}   MAC ${mac}   mode ${platform}
+echo ============================================================
+echo
+
+set base @@BASE_URL@@/winpe
+
+echo [1/3] Chargement de wimboot...
+kernel ${base}/wimboot || goto echec
+
+echo [2/3] Chargement du mini-systeme Windows PE (environ 400 Mo, patientez)...
+initrd ${base}/bootmgr   bootmgr    || goto echec
+initrd ${base}/BCD       BCD        || goto echec
+initrd ${base}/boot.sdi  boot.sdi   || goto echec
+initrd ${base}/boot.wim  boot.wim   || goto echec
+
+echo [3/3] Demarrage de Windows PE...
+boot || goto echec
+
+# Si « boot » réussit, on ne revient jamais ici.
+exit
+
+# -----------------------------------------------------------------------------
+#  Échec : on l'écrit clairement, on laisse 15 s pour le lire, puis on ouvre le
+#  shell iPXE (pas de redémarrage automatique : s'il n'y a personne devant le PC,
+#  il reste simplement affiché au lieu de boucler sans bruit).
+#    - tapez « exit »   : le PC continue sur son démarrage normal (disque) ;
+#    - tapez « reboot » : le PC redémarre pour un nouvel essai.
+# -----------------------------------------------------------------------------
+:echec
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo  ECHEC du demarrage par le reseau
+echo  Verifier : le serveur est allume et repond sur @@BASE_URL@@
+echo             le mini-systeme existe (scripts/build-winpe.sh a ete lance)
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo  Invite iPXE dans 15 secondes.   exit = demarrer sur le disque
+echo                                  reboot = nouvel essai
+sleep 15
+shell

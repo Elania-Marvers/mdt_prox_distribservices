@@ -1,0 +1,43 @@
+# Paquets du mini-système (live-build : un nom de paquet par ligne).
+# RÈGLE : tout programme que client/linux_restore.py exige (fonction required_tools) doit venir d'ici
+# ou de la base de Debian ; tests/test_live_config.py le vérifie.
+
+# --- Démarrage du système live par le réseau
+live-boot
+live-config
+live-config-systemd
+systemd-sysv
+udev
+# live-boot télécharge le système de fichiers (fetch=http://…) avec curl : il doit être dans l'initrd
+curl
+
+# --- Le client de déploiement
+python3
+
+# --- Restauration d'une image Clonezilla
+gdisk
+parted
+ntfs-3g
+partclone
+zstd
+bzip2
+xz-utils
+lz4
+efibootmgr
+# gzip, dd (coreutils), mount, umount, wipefs, blockdev (util-linux) sont déjà dans la base de Debian
+
+# --- Réseau (DHCP via systemd-networkd, déjà dans le paquet systemd) et dépannage
+iproute2
+iputils-ping
+pciutils
+dmidecode
+
+# --- Console en français (accents, œ, clavier AZERTY)
+console-setup
+keyboard-configuration
+kbd
+
+# --- Micrologiciels de cartes réseau courantes (PC de bureau courants : Intel sans micrologiciel, Realtek parfois)
+firmware-realtek
+firmware-bnx2
+firmware-bnx2x

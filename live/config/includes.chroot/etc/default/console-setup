@@ -1,0 +1,6 @@
+# Police avec les accents, le œ et l'euro (Latin-9) : sans elle, « Allez vous faire cuire un œuf » s'affiche mal.
+ACTIVE_CONSOLES="/dev/tty[1-6]"
+CHARMAP="UTF-8"
+CODESET="Lat15"
+FONTFACE="Fixed"
+FONTSIZE="8x16"

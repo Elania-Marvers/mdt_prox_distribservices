@@ -1,0 +1,20 @@
+# Client de déploiement : prend la console 1 (à la place d'une invite de connexion).
+[Unit]
+Description=MDTPROX - client de deploiement (console 1)
+After=systemd-networkd.service systemd-user-sessions.service
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStart=/opt/mdtprox/start.sh
+StandardInput=tty-force
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
